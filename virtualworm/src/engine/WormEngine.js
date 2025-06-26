@@ -69,7 +69,7 @@ export default class WormEngine {
       new Neuron([0.4, 0.3, 0.2, 0.1], 0, sigmoid), // right
     ];
     this.directions = ['up', 'down', 'left', 'right'];
-    this.speed = 120; // px/s, smooth hareket için hız
+    this.speed = 60; // px/s, smooth hareket için hız (50% azaltıldı)
     this.lastDirection = null;
   }
 
