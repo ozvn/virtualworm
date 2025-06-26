@@ -1,4 +1,170 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Virtual Worm Native
+
+A React Native game featuring an AI-powered worm with neural network movement, toxic substance management, enemy spawning, and dynamic speed systems.
+
+## 🏗️ File Structure
+
+The project has been reorganized into a clean, modular architecture:
+
+```
+src/
+├── constants/
+│   └── GameConstants.js          # Global game parameters and constants
+├── engine/
+│   └── WormEngine.js             # Neural network engine for worm movement
+├── systems/
+│   ├── GameManager.js            # Main game coordinator
+│   ├── WormMovementSystem.js     # Worm movement and pathfinding
+│   ├── EnemySystem.js            # Enemy spawning and AI
+│   ├── ToxicSubstanceSystem.js   # Toxic area management
+│   ├── FoodSystem.js             # Food placement and consumption
+│   ├── RestSystem.js             # Worm resting mechanics
+│   └── SpeedSystem.js            # Speed variations and bursts
+└── screens/
+    └── GameScreen.js             # Main game UI and rendering
+```
+
+## 🎮 Game Systems
+
+### 1. **Game Constants** (`constants/GameConstants.js`)
+Centralized configuration for all game parameters:
+- Screen dimensions and UI constants
+- Worm properties (size, speed, sense radius)
+- Enemy settings (size, speed, spawn intervals)
+- Toxic substance parameters (duration, renewal thresholds)
+- Rest system configuration
+- Speed system parameters
+- Animation constants
+
+### 2. **Worm Engine** (`engine/WormEngine.js`)
+Neural network-based movement system:
+- Multi-layer neural network with sensory, hidden, and motor neurons
+- Activation functions (sigmoid, ReLU, tanh)
+- Direction prediction based on sensory inputs
+- Boundary collision detection
+
+### 3. **Game Manager** (`systems/GameManager.js`)
+Main coordinator that orchestrates all systems:
+- Initializes and manages all game systems
+- Handles the main game loop
+- Coordinates system interactions
+- Manages game state updates
+
+### 4. **Worm Movement System** (`systems/WormMovementSystem.js`)
+Handles worm movement logic:
+- Target selection (food, toxic areas, random points)
+- Pathfinding and movement calculations
+- Target reached detection
+- Movement animation with sway effects
+
+### 5. **Enemy System** (`systems/EnemySystem.js`)
+Manages enemy behavior:
+- Enemy spawning from screen edges
+- AI movement towards the worm
+- Toxic area protection (enemies destroyed near toxic areas)
+- Collision detection and cleanup
+
+### 6. **Toxic Substance System** (`systems/ToxicSubstanceSystem.js`)
+Manages toxic area mechanics:
+- Toxic area initialization and status tracking
+- Duration management and renewal logic
+- Status formatting for UI display
+- Developer functions for testing
+
+### 7. **Food System** (`systems/FoodSystem.js`)
+Handles food mechanics:
+- Food placement on screen
+- Food consumption by worm
+- Food state management
+
+### 8. **Rest System** (`systems/RestSystem.js`)
+Manages worm resting behavior:
+- Random rest initiation
+- Rest duration and cooldown management
+- Speed reduction during rest periods
+
+### 9. **Speed System** (`systems/SpeedSystem.js`)
+Handles speed variations:
+- Random speed changes
+- Burst (depar) mechanics
+- Speed multiplier management
+- Integration with rest system
+
+## 🎯 Key Features
+
+### Neural Network Movement
+- The worm uses a 5-layer neural network for movement decisions
+- Sensory inputs include movement direction and environmental data
+- Smooth, organic movement patterns with sway effects
+
+### Toxic Substance Management
+- 4 strategic toxic areas on the map
+- 48-hour duration with 12-hour renewal threshold
+- Enemies are destroyed when approaching toxic areas
+- Visual status indicators for each area
+
+### Dynamic Enemy System
+- Enemies spawn from screen edges
+- AI-driven movement towards the worm
+- Spawn rate inversely proportional to active toxic areas
+- Click to remove enemies manually
+
+### Rest and Speed Mechanics
+- Random rest periods with natural variation
+- Speed bursts (depar) for dynamic gameplay
+- Continuous speed variations for realistic movement
+- Rest cooldown system
+
+### Food System
+- Click to place food anywhere on screen
+- Worm prioritizes food within sense radius
+- Automatic food consumption
+- Multiple food items supported
+
+## 🔧 Development
+
+### Adding New Features
+1. **Constants**: Add new parameters to `GameConstants.js`
+2. **System**: Create a new system class in `systems/`
+3. **Integration**: Add the system to `GameManager.js`
+4. **UI**: Update `GameScreen.js` for visual representation
+
+### Modifying Game Parameters
+All game parameters are centralized in `GameConstants.js`:
+- Worm speed: `WORM.BASE_SPEED`
+- Enemy spawn rate: `ENEMY.SPAWN_INTERVAL`
+- Toxic duration: `TOXIC.DURATION`
+- Rest probability: `REST.PROBABILITY`
+
+### Testing Features
+Use the Developer Panel (accessible via the "Geliştirici" button):
+- Reset toxic areas
+- Fill all toxic areas
+- Test with 30-second toxic duration
+
+## 🚀 Performance Optimizations
+
+- **Modular Systems**: Each system handles its own logic independently
+- **Efficient Updates**: Only necessary state updates are performed
+- **Optimized Rendering**: Canvas-based rendering with minimal re-renders
+- **Memory Management**: Proper cleanup of enemies and expired toxic areas
+
+## 📱 UI Components
+
+- **Canvas**: Main game area with Skia rendering
+- **Debug Panel**: Real-time game state information
+- **Menu Bar**: Food placement, toxic status, and developer panel
+- **Overlays**: Interactive areas for food placement and toxic area management
+
+## 🔄 Game Loop
+
+1. **Update Systems**: Each system updates its state
+2. **Process Interactions**: Handle user input and system interactions
+3. **Update Game State**: Apply changes to game state
+4. **Render**: Update UI with new state
+5. **Repeat**: Continue loop at 60 FPS
+
+This modular architecture makes the codebase maintainable, extensible, and easy to understand while preserving all the original game functionality.
 
 # Getting Started
 
@@ -66,7 +232,7 @@ This is one way to run your app — you can also build it directly from Android 
 
 Now that you have successfully run the app, let's make changes!
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
 
 When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
 

@@ -1,3 +1,5 @@
+import { WORM, BOUNDS } from '../constants/GameConstants';
+
 // Openworm hareket motoru - sadeleştirilmiş
 
 function sigmoid(x) {
@@ -69,7 +71,7 @@ export default class WormEngine {
       new Neuron([0.4, 0.3, 0.2, 0.1], 0, sigmoid), // right
     ];
     this.directions = ['up', 'down', 'left', 'right'];
-    this.speed = 60; // px/s, smooth hareket için hız (50% azaltıldı)
+    this.speed = WORM.BASE_SPEED; // px/s, smooth hareket için hız
     this.lastDirection = null;
   }
 
@@ -90,8 +92,7 @@ export default class WormEngine {
   }
 
   // Akışkan hareket ve sınır kontrolü
-  getNextPosition(current, direction, deltaTime, bounds) {
-    const speed = this.speed; // px/s
+  getNextPosition(current, direction, deltaTime, bounds = BOUNDS, speed = this.speed) {
     const step = speed * deltaTime; // deltaTime: saniye cinsinden
     let next = { ...current };
     switch (direction) {
@@ -102,15 +103,15 @@ export default class WormEngine {
       default: break;
     }
     // Sınır kontrolü
-    if (next.x < bounds.minX) next.x = bounds.minX;
-    if (next.x > bounds.maxX) next.x = bounds.maxX;
-    if (next.y < bounds.minY) next.y = bounds.minY;
-    if (next.y > bounds.maxY) next.y = bounds.maxY;
+    if (next.x < bounds.MIN_X) next.x = bounds.MIN_X;
+    if (next.x > bounds.MAX_X) next.x = bounds.MAX_X;
+    if (next.y < bounds.MIN_Y) next.y = bounds.MIN_Y;
+    if (next.y > bounds.MAX_Y) next.y = bounds.MAX_Y;
     // Eğer sınırda ve o yöne gitmek istiyorsa, pozisyonu değiştirme
-    if ((current.x === bounds.minX && direction === 'left') ||
-        (current.x === bounds.maxX && direction === 'right') ||
-        (current.y === bounds.minY && direction === 'down') || // dikkat!
-        (current.y === bounds.maxY && direction === 'up')) {   // dikkat!
+    if ((current.x === bounds.MIN_X && direction === 'left') ||
+        (current.x === bounds.MAX_X && direction === 'right') ||
+        (current.y === bounds.MIN_Y && direction === 'down') || // dikkat!
+        (current.y === bounds.MAX_Y && direction === 'up')) {   // dikkat!
       return { ...current };
     }
     return next;
