@@ -24,8 +24,8 @@ export const FOOD = {
 // Enemy Constants
 export const ENEMY = {
   SIZE: 15,
-  BASE_SPEED: 40, // px/s
-  SPAWN_INTERVAL: 8000, // 8 saniyede bir düşman
+  BASE_SPEED: 30, // px/s
+  SPAWN_INTERVAL: 80000, // 80 saniyede bir düşman
 };
 
 // Toxic Substance Constants

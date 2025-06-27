@@ -59,7 +59,7 @@ export class EnemySystem {
   }
 
   // Düşman hareketi
-  updateEnemies(enemies, worm, toxicAreas, currentTime, deltaTime) {
+  updateEnemies(enemies, worm, toxicAreas, currentTime, deltaTime, onWormHit) {
     return enemies.map(enemy => {
       // Toksik sıvı alanına yakınsa düşmanı yok et
       if (this.isEnemyNearToxicArea(enemy, toxicAreas, currentTime)) {
@@ -93,6 +93,7 @@ export class EnemySystem {
       const distToWorm = Math.hypot(enemy.x - worm.x, enemy.y - worm.y);
       if (distToWorm < WORM.SIZE + ENEMY.SIZE) {
         // Çarpışma! Düşmanı sil
+        if (onWormHit) onWormHit(enemy);
         return false;
       }
       
@@ -117,5 +118,11 @@ export class EnemySystem {
   // Düşmanı sil
   removeEnemy(enemies, enemyId) {
     return enemies.filter(enemy => enemy.id !== enemyId);
+  }
+
+  // Düşman spawn süresinin kalanını döndür
+  getEnemySpawnRemaining(currentTime) {
+    const elapsed = currentTime - this.lastSpawnTime;
+    return Math.max(0, ENEMY.SPAWN_INTERVAL - elapsed);
   }
 } 

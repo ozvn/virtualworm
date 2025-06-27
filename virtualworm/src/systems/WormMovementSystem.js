@@ -4,10 +4,11 @@ export class WormMovementSystem {
   constructor(engine) {
     this.engine = engine;
     this.currentSpeed = WORM.BASE_SPEED; // Başlangıç hızı
+    this.justReachedTarget = false; // Mavi hedefe yeni ulaşıldı mı?
   }
 
   // Rastgele hedef belirle
-  pickRandomTarget(currentPos) {
+  pickRandomTarget(currentPos, prevTarget = null) {
     let tx, ty, dist;
     let tries = 0;
     do {
@@ -15,7 +16,11 @@ export class WormMovementSystem {
       ty = Math.random() * (BOUNDS.MAX_Y - BOUNDS.MIN_Y - 80) + BOUNDS.MIN_Y + 40;
       dist = Math.hypot(tx - currentPos.x, ty - currentPos.y);
       tries++;
-    } while ((dist < 60 || tx < BOUNDS.MIN_X + 40 || tx > BOUNDS.MAX_X - 40 || ty < BOUNDS.MIN_Y + 40 || ty > BOUNDS.MAX_Y - 40) && tries < 20);
+    } while (
+      ((dist < 60 || tx < BOUNDS.MIN_X + 40 || tx > BOUNDS.MAX_X - 40 || ty < BOUNDS.MIN_Y + 40 || ty > BOUNDS.MAX_Y - 40)
+      || (prevTarget && Math.abs(tx - prevTarget.x) < 2 && Math.abs(ty - prevTarget.y) < 2))
+      && tries < 20
+    );
     return { x: tx, y: ty };
   }
 
@@ -47,18 +52,28 @@ export class WormMovementSystem {
   }
 
   // Hedef kontrolü ve güncelleme
-  checkTargetReached(worm, currentTarget, foods, isPlacingToxic, selectedToxicArea, onTargetReached) {
+  checkTargetReached(worm, currentTarget, foods, isPlacingToxic, selectedToxicArea, onTargetReached, target) {
     const distToTarget = Math.hypot(worm.x - currentTarget.x, worm.y - currentTarget.y);
-    
+
+    // --- HARD CODE: Mavi hedefin hitbox'ı ile solucan çakışıyorsa, yeni hedef ata ---
+    if (target && currentTarget === target && distToTarget < WORM.SIZE) {
+      onTargetReached('random');
+      this.justReachedTarget = true;
+      return;
+    }
+    // ---
+
     if (isPlacingToxic && selectedToxicArea && distToTarget < 60) {
-      // Toksik sıvı bırakma hedefine ulaştı
       onTargetReached('toxic');
     } else if (foods.some(f => f === currentTarget) && distToTarget < FOOD.SIZE) {
-      // Besine ulaştıysa sadece o besini sil
       onTargetReached('food', currentTarget);
-    } else if (foods.length === 0 && distToTarget < WORM.SIZE) {
-      // Mavi hedefe ulaştıysa yeni hedef ata
+      this.justReachedTarget = false;
+    } else if (target && currentTarget === target && distToTarget < WORM.SIZE && !this.justReachedTarget) {
+      // (Ekstra güvenlik için, flag ile tekrar tetiklenmesin)
       onTargetReached('random');
+      this.justReachedTarget = true;
+    } else if (!target || currentTarget !== target) {
+      this.justReachedTarget = false;
     }
   }
 

@@ -11,11 +11,13 @@ import {
   REST, 
   SPEED 
 } from '../constants/GameConstants';
+import { useNavigation } from '@react-navigation/native';
 
 export default function GameScreen() {
   const gameManager = useMemo(() => new GameManager(), []);
   const [gameState, setGameState] = useState(null);
   const animationRef = useRef(null);
+  const navigation = useNavigation();
 
   // Initialize game
   useEffect(() => {
@@ -67,18 +69,20 @@ export default function GameScreen() {
 
   // Toxic area press handler
   const handleToxicAreaPress = (area) => {
-    const message = gameManager.handleToxicAreaPress(area);
-    
+    const message = gameManager.toxicSystem.getRenewalMessage(area, gameManager.currentTime);
+
     Alert.alert(
       message.title,
       message.message,
       [
-        { text: "İptal", style: "cancel" },
+        { text: "İptal", style: "cancel", onPress: () => {
+          // İptal'e basılırsa hiçbir şey yapma, state değişmesin
+          setGameState(gameManager.getGameState());
+        } },
         ...(message.canRenew ? [{
           text: "Yenile",
           onPress: () => {
-            gameManager.selectedToxicArea = area;
-            gameManager.isPlacingToxic = true;
+            gameManager.handleToxicAreaPress(area); // Sadece Yenile'ye basılırsa state güncelleniyor
             setGameState(gameManager.getGameState());
           }
         }] : [])
@@ -118,6 +122,13 @@ export default function GameScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Açlık ve Can Göstergesi */}
+      <View style={{ position: 'absolute', top: 60, left: 0, right: 0, zIndex: 30, alignItems: 'center' }}>
+        <View style={{ flexDirection: 'row', backgroundColor: 'rgba(0,0,0,0.7)', borderRadius: 12, padding: 8 }}>
+          <Text style={{ color: '#fff', fontWeight: 'bold', marginRight: 16 }}>Can: {Math.round(gameState.health)}</Text>
+          <Text style={{ color: '#fff', fontWeight: 'bold' }}>Açlık: {Math.round(gameState.hunger)}</Text>
+        </View>
+      </View>
       <View style={styles.canvasWrapper}>
         <Canvas style={styles.canvas}>
           {/* Alt duvar (menü barının üstü) */}
@@ -255,6 +266,11 @@ export default function GameScreen() {
         
         {/* Debug Info */}
         <View style={styles.debugInfo} pointerEvents="none">
+          <Text style={{ color: '#fff', fontSize: 13, fontWeight: 'bold' }}>x: {Math.round(worm.x)}, y: {Math.round(worm.y)}</Text>
+          <Text style={{ color: '#fff', fontSize: 13, fontWeight: 'bold' }}>Can: {Math.round(gameState.health)}, Açlık: {Math.round(gameState.hunger)}</Text>
+          <Text style={{ color: '#fff', fontSize: 13 }}>Frame: {frame}</Text>
+          <Text style={{ color: '#fff', fontSize: 13 }}>Yön: {direction}</Text>
+          <Text style={{ color: '#fff', fontSize: 13 }}>Açı: {Math.round(wormAngle)}</Text>
           <View style={{ backgroundColor: 'rgba(0,0,0,0.5)', padding: 8, borderRadius: 8 }}>
             <Text style={{ color: '#fff', fontSize: 16 }}>Yön: {direction}</Text>
             <Text style={{ color: '#fff', fontSize: 12 }}>
@@ -262,6 +278,9 @@ export default function GameScreen() {
             </Text>
             <Text style={{ color: '#fff', fontSize: 12 }}>
               Düşman: {enemies.length}
+            </Text>
+            <Text style={{ color: '#fff', fontSize: 10 }}>
+              Yeni düşman: {Math.ceil(gameManager.getEnemySpawnRemaining() / 1000)}s
             </Text>
             <Text style={{ color: '#fff', fontSize: 10 }}>
               {isPlacingToxic ? 'Toksik Bırakılıyor...' : (restState.isResting ? 'Dinleniyor...' : 'Hazır')}
@@ -332,6 +351,13 @@ export default function GameScreen() {
           }}
         >
           <Text style={styles.menuButtonText}>Geliştirici</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={[styles.menuButton, { backgroundColor: '#2196F3' }]}
+          onPress={() => navigation.navigate('GameArea')}
+        >
+          <Text style={styles.menuButtonText}>Oyun Alanı Oluştur</Text>
         </TouchableOpacity>
       </View>
       

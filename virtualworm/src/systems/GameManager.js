@@ -19,7 +19,7 @@ export class GameManager {
     this.speedSystem = new SpeedSystem();
     
     // Game state
-    this.worm = { x: SCREEN.WIDTH / 2, y: SCREEN.HEIGHT / 2 };
+    this.worm = { x: SCREEN.WIDTH / 2, y: SCREEN.HEIGHT / 2, health: 100, hunger: 100 };
     this.target = null;
     this.direction = 'up';
     this.frame = 0;
@@ -55,6 +55,18 @@ export class GameManager {
     this.currentTime = now;
     this.frame++;
 
+    // Açlık yavaşça azalsın
+    this.worm.hunger = Math.max(0, this.worm.hunger - 2 * deltaTime); // saatte 2 birim
+
+    // Açlık çok düşükse can yavaşça azalsın
+    if (this.worm.hunger <= 0) {
+      this.worm.health = Math.max(0, this.worm.health - 5 * deltaTime);
+    }
+    // Açlık yüksekse can yavaşça dolsun
+    else if (this.worm.hunger > 60 && this.worm.health < 100) {
+      this.worm.health = Math.min(100, this.worm.health + 3 * deltaTime);
+    }
+
     // Update rest system
     const restStatus = this.restSystem.checkRestStatus(now);
     if (restStatus.restEnded) {
@@ -84,13 +96,21 @@ export class GameManager {
     const finalSpeedMultiplier = this.speedSystem.applyRestSpeed(restSpeedMultiplier);
 
     // Update enemies
+    const prevHealth = this.worm.health;
     this.enemies = this.enemySystem.updateEnemies(
       this.enemies, 
       this.worm, 
       this.toxicAreas, 
       now, 
-      deltaTime
+      deltaTime,
+      (enemyHit) => {
+        // Düşman çarpışmasında can azalt
+        this.worm.health = Math.max(0, this.worm.health - 10);
+      }
     );
+    if (this.worm.health !== prevHealth) {
+      // Can değiştiyse bir şey yapılabilir (ileride animasyon vs.)
+    }
 
     // Spawn enemies if needed
     if (this.enemySystem.shouldSpawnEnemy(this.toxicAreas, now)) {
@@ -139,7 +159,8 @@ export class GameManager {
       this.selectedToxicArea,
       (type, targetFood) => {
         this.handleTargetReached(type, targetFood);
-      }
+      },
+      this.target
     );
   }
 
@@ -152,12 +173,15 @@ export class GameManager {
       case 'food':
         this.foods = this.foodSystem.consumeFood(this.foods, targetFood);
         this.foodSystem.setFoods(this.foods);
+        // Yemek yendiğinde açlık azalsın
+        this.worm.hunger = Math.min(100, this.worm.hunger + 30);
         if (this.foods.length === 0) {
           this.target = this.movementSystem.pickRandomTarget(this.worm);
         }
         break;
       case 'random':
-        this.target = this.movementSystem.pickRandomTarget(this.worm);
+        // Mavi hedefe ulaşıldı, yeni hedef ata (eski hedefle aynı olmasın)
+        this.target = this.movementSystem.pickRandomTarget(this.worm, this.target);
         break;
     }
   }
@@ -232,7 +256,9 @@ export class GameManager {
       selectedToxicArea: this.selectedToxicArea,
       showDeveloperPanel: this.showDeveloperPanel,
       restState: this.restSystem.getRestState(),
-      speedState: this.speedSystem.getSpeedState()
+      speedState: this.speedSystem.getSpeedState(),
+      health: this.worm.health,
+      hunger: this.worm.hunger
     };
   }
 
@@ -265,5 +291,10 @@ export class GameManager {
   // Get active toxic areas count
   getActiveToxicAreasCount() {
     return this.toxicSystem.getActiveToxicAreasCount(this.toxicAreas, this.currentTime);
+  }
+
+  // Düşman spawn kalan süresi (ms)
+  getEnemySpawnRemaining() {
+    return this.enemySystem.getEnemySpawnRemaining(this.currentTime);
   }
 } 
