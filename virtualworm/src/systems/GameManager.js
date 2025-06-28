@@ -76,17 +76,15 @@ export class GameManager {
     // Check if should start rest
     if (this.restSystem.shouldStartRest(now)) {
       this.restSystem.startRest(now);
+      this.restSystem._nextCooldown = null;
     }
 
     // Update speed system
     const burstStatus = this.speedSystem.checkBurstStatus(now);
     if (burstStatus.burstEnded) {
-      // Burst ended
-    }
-
-    // Check if should start burst
-    if (this.speedSystem.shouldStartBurst(now)) {
-      this.speedSystem.startBurst(now);
+      // Burst ended, start rest automatically
+      this.restSystem.startRest(now);
+      this.restSystem._nextCooldown = null;
     } else if (this.speedSystem.shouldChangeSpeed(now)) {
       this.speedSystem.changeSpeed();
     }

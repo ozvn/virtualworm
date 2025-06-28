@@ -6,14 +6,19 @@ export class RestSystem {
     this.restStartTime = 0;
     this.restDuration = 0;
     this.lastRestTime = 0;
+    this._nextCooldown = null;
   }
 
   // Dinlenme başlatma kontrolü
   shouldStartRest(currentTime) {
     if (this.isResting) return false;
     
+    // Cooldown'u random aralıkta belirle (ör: 10-20 sn)
+    if (!this._nextCooldown) {
+      this._nextCooldown = REST.MIN_COOLDOWN + Math.random() * (REST.MAX_COOLDOWN - REST.MIN_COOLDOWN);
+    }
     const timeSinceLastRest = currentTime - this.lastRestTime;
-    if (timeSinceLastRest <= REST.COOLDOWN) return false;
+    if (timeSinceLastRest <= this._nextCooldown) return false;
     
     return Math.random() < REST.PROBABILITY;
   }

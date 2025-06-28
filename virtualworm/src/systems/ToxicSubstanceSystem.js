@@ -47,9 +47,11 @@ export class ToxicSubstanceSystem {
     const elapsed = currentTime - area.startTime;
     const remaining = Math.max(0, area.remainingTime - elapsed);
     const isExpired = remaining <= 0;
-    const canRenew = remaining <= TOXIC.RENEWAL_THRESHOLD;
+    // 36 saatten az kaldıysa yenilenebilir (yani 12 saat geçtiğinde)
+    const canRenew = remaining <= (36 * 60 * 60 * 1000);
+    const mustRenew = remaining <= 0;
     
-    return { isActive: !isExpired, remaining, canRenew };
+    return { isActive: !isExpired, remaining, canRenew, mustRenew };
   }
 
   // Aktif toksik alanları say
@@ -96,19 +98,29 @@ export class ToxicSubstanceSystem {
     
     toxicAreas.forEach((area, index) => {
       const status = this.getToxicAreaStatus(area, currentTime);
-      
       statusText += `${index + 1}. ${area.id.toUpperCase()}:\n`;
       statusText += `   Durum: ${area.hasToxic ? (status.isActive ? '✅ Aktif' : '❌ Süresi Bitti') : '⚪ Boş'}\n`;
-      
       if (area.hasToxic) {
         const hours = Math.floor(status.remaining / (60 * 60 * 1000));
         const minutes = Math.floor((status.remaining % (60 * 60 * 1000)) / (60 * 1000));
         const seconds = Math.floor((status.remaining % (60 * 1000)) / 1000);
         statusText += `   Kalan Süre: ${hours}s ${minutes}dk ${seconds}sn\n`;
+        // Yenilenebilirlik bilgisi
+        if (status.canRenew) {
+          statusText += `   Yenilenebilir: Hemen\n`;
+        } else {
+          // 36 saatten az kalana kadar kalan süreyi göster
+          const renewIn = status.remaining - (36 * 60 * 60 * 1000);
+          if (renewIn > 0) {
+            const renewHours = Math.floor(renewIn / (60 * 60 * 1000));
+            const renewMinutes = Math.floor((renewIn % (60 * 60 * 1000)) / (60 * 1000));
+            const renewSeconds = Math.floor((renewIn % (60 * 1000)) / 1000);
+            statusText += `   Yenilenebilir: ${renewHours}s ${renewMinutes}dk ${renewSeconds}sn sonra\n`;
+          }
+        }
       }
       statusText += '\n';
     });
-    
     return statusText;
   }
 
@@ -121,34 +133,34 @@ export class ToxicSubstanceSystem {
   // Yenileme mesajı oluştur
   getRenewalMessage(area, currentTime) {
     const status = this.getToxicAreaStatus(area, currentTime);
-    
-    if (!status.isActive) {
+    const hours = Math.floor(status.remaining / (60 * 60 * 1000));
+    const minutes = Math.floor((status.remaining % (60 * 60 * 1000)) / (60 * 1000));
+    const seconds = Math.floor((status.remaining % (60 * 1000)) / 1000);
+    if (!status.isActive || status.mustRenew) {
       return {
         title: "Toksik Sıvı Yenile",
-        message: "Bu alana toksik sıvı bırakmak istiyor musunuz?",
+        message: "Bu alana toksik sıvı bırakmak istiyor musunuz? (Süre otomatik 48 saate tamamlanacak)",
         canRenew: true
       };
     } else if (status.canRenew) {
-      const hours = Math.floor(status.remaining / (60 * 60 * 1000));
-      const minutes = Math.floor((status.remaining % (60 * 60 * 1000)) / (60 * 1000));
-      const seconds = Math.floor((status.remaining % (60 * 1000)) / 1000);
-      
       return {
         title: "Toksik Sıvı Yenile",
-        message: `Bu alanda toksik sıvı var ama süresi azalıyor.\nKalan süre: ${hours}s ${minutes}dk ${seconds}sn\n\nYenilemek istiyor musunuz?`,
+        message: `Bu alanda toksik sıvı var ama süresi azalıyor.\nKalan süre: ${hours}s ${minutes}dk ${seconds}sn\n\nYenilenebilir: Hemen\nYenilemek istiyor musunuz? (Süre otomatik 48 saate tamamlanacak)`,
         canRenew: true
       };
     } else {
-      const hours = Math.floor(status.remaining / (60 * 60 * 1000));
-      const minutes = Math.floor((status.remaining % (60 * 60 * 1000)) / (60 * 1000));
-      const seconds = Math.floor((status.remaining % (60 * 1000)) / 1000);
-      const renewalHours = Math.floor((status.remaining - TOXIC.RENEWAL_THRESHOLD) / (60 * 60 * 1000));
-      const renewalMinutes = Math.floor(((status.remaining - TOXIC.RENEWAL_THRESHOLD) % (60 * 60 * 1000)) / (60 * 1000));
-      const renewalSeconds = Math.floor(((status.remaining - TOXIC.RENEWAL_THRESHOLD) % (60 * 1000)) / 1000);
-      
+      // 36 saatten az kalana kadar kalan süreyi göster
+      const renewIn = status.remaining - (36 * 60 * 60 * 1000);
+      let renewalText = '';
+      if (renewIn > 0) {
+        const renewalHours = Math.floor(renewIn / (60 * 60 * 1000));
+        const renewalMinutes = Math.floor((renewIn % (60 * 60 * 1000)) / (60 * 1000));
+        const renewalSeconds = Math.floor((renewIn % (60 * 1000)) / 1000);
+        renewalText = `Yenilenebilir: ${renewalHours}s ${renewalMinutes}dk ${renewalSeconds}sn sonra`;
+      }
       return {
         title: "Toksik Sıvı Durumu",
-        message: `Bu alanda toksik sıvı var.\nKalan süre: ${hours}s ${minutes}dk ${seconds}sn\n\nYenilenebilir: ${renewalHours}s ${renewalMinutes}dk ${renewalSeconds}sn sonra`,
+        message: `Bu alanda toksik sıvı var.\nKalan süre: ${hours}s ${minutes}dk ${seconds}sn\n\n${renewalText}`,
         canRenew: false
       };
     }

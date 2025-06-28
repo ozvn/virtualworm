@@ -49,7 +49,8 @@ export const REST = {
   PROBABILITY: 0.008, // Her frame'de %0.8 ihtimalle dinlenme başlat
   MIN_DURATION: 2000, // Minimum 2 saniye dinlenme
   MAX_DURATION: 8000, // Maksimum 8 saniye dinlenme
-  COOLDOWN: 15000, // Dinlenme sonrası 15 saniye bekleme
+  MIN_COOLDOWN: 10000, // Dinlenme sonrası minimum 10 saniye bekleme
+  MAX_COOLDOWN: 20000, // Dinlenme sonrası maksimum 20 saniye bekleme
   VARIANCE: 0.3, // Dinlenme süresinde %30 varyasyon
   SPEED_MULTIPLIER: 0.3, // Dinlenme sırasında %30 hız
 };
@@ -57,8 +58,8 @@ export const REST = {
 // Speed System Constants
 export const SPEED = {
   CHANGE_PROBABILITY: 0.015, // Her frame'de %1.5 ihtimalle hız değişimi
-  BURST_PROBABILITY: 0.003, // Her frame'de %0.3 ihtimalle depar (burst)
-  BURST_DURATION: 2000, // Depar süresi 2 saniye
+  BURST_PROBABILITY: 0.001, // Her frame'de %0.1 ihtimalle depar (burst) (daha seyrek)
+  BURST_DURATION: 3500, // Depar süresi 3.5 saniye (daha uzun)
   BURST_COOLDOWN: 7000, // Depar sonrası 10 saniye bekleme
   MIN_MULTIPLIER: 0.7, // Minimum %70 hız
   MAX_MULTIPLIER: 1.5, // Maksimum %150 hız

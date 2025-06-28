@@ -119,7 +119,7 @@ export class WormMovementSystem {
     if (!Number.isFinite(targetSpeed)) targetSpeed = this.engine.speed;
 
     // İvme katsayısı (daha hızlı geçiş için 0.18)
-    const ACCELERATION_FACTOR = 0.18;
+    const ACCELERATION_FACTOR = 0.07; // Daha yumuşak ve yavaş ivmelenme
     this.currentSpeed += (targetSpeed - this.currentSpeed) * ACCELERATION_FACTOR;
 
     // Sensory inputlar: yeni vektör
